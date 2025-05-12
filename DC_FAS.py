@@ -1,29 +1,3 @@
-# coding=utf-8
-# Copyright (C) 2021. Huawei Technologies Co., Ltd. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-"""
-This demo script aim to demonstrate
-how to use CORL algorithm in `castle` package for causal inference.
-
-If you want to plot causal graph, please make sure you have already install
-`networkx` package, then like the following import method.
-
-Warnings: This script is used only for demonstration and cannot be directly
-          imported.
-"""
-
 import os
 os.environ['CASTLE_BACKEND'] ='pytorch'
 import pandas as pd
@@ -60,13 +34,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'causal-
 
 
 def set_logger(args):
-    # 配置日志
-    # 记录不同级别的日志
-    # logger.debug("这是一条debug信息")
-    # logger.info("这是一条info信息")
-    # logger.warning("这是一条warning信息")
-    # logger.error("这是一条error信息")
-    # logger.critical("这是一条critical信息")
     log_path = f"./experiment_logs/v3_lamb_thresh_exp_{args.type}{args.h}N{args.nodes}_DCFAS_{args.model}.log"
     if os.path.exists(log_path): os.remove(log_path)
     
@@ -91,8 +58,6 @@ def set_logger(args):
     
 
 def get_MB(data, ice_lam_min = 0.01, ice_lam_max = 0.1, ice_lam_n = 40):
-    # 这三个参数维持SCILP默认设置，具体取值也许论文里提及了？ TODO double check hyper-parameters in DCILP paper
-    # ice_lam_min, ice_lam_max, ice_lam_n 0.1, 0.3, 10
 
     data = data - np.mean(data, axis=0, keepdims=True)
     # Method ICE empirical
@@ -111,18 +76,13 @@ def get_MB(data, ice_lam_min = 0.01, ice_lam_max = 0.1, ice_lam_n = 40):
 
 def true_MB(true_dag, i):
     n_nodes = true_dag.shape[0]
-    # print(f"====={i}====")
     parents = set(np.where(true_dag[:,i])[0])
     children = set(np.where(true_dag[i,:])[0])
-    # print(f"parents:{parents}")
-    # print(f"children:{children}")
     spouse = [i]
     for c in children:
         spouse += list(np.where(true_dag[:,c])[0])
     spouse = set(spouse)
     MB = sorted(parents.union(set(children), set(spouse)))
-    # print(f"spouse:{spouse}")
-    # print(f"MB:{MB}")
     return parents, children, spouse, MB
 
 def eval_MB(tgt, pred):
@@ -156,9 +116,6 @@ def evaluation_summary(list_of_dic):
     return result
 
 def split_graph(markov_blankets, true_dag, X):
-    # sub_X_list: 每个元素为子图对应的数据矩阵
-    # sub_true_dag_list: 每个元素为子图对应的邻接矩阵 (感觉好像没用)
-    # sub_nodes_list：很重要，子图排序完之后要恢复回原来的节点
 
     sub_X_list = []
     sub_true_dag_list = []
@@ -343,7 +300,7 @@ if __name__ == '__main__':
                         help="?")
     parser.add_argument('--repeat', default=10, type=int,
                         help="number of repeated iterations")
-    parser.add_argument('--num_observation', default=2000, type=int,
+    parser.add_argument('--num_observation', default=80000, type=int,
                         help="number of observation data")
 
     args = parser.parse_args()
@@ -389,13 +346,13 @@ if __name__ == '__main__':
         parents, children, spouse, sub_MB = true_MB(true_dag, 0)
 
 
-        ## 测试MB结果
+        ## MB
         t1 = time.time()
         markov_blankets = get_MB(X)
         time_MB = time.time()-t1
         
 
-        # 根据 markov_blankets 分割 true_dag 和 X
+        # split subgraphs
         sub_X_list, sub_true_dag_list, sub_nodes_list = split_graph(markov_blankets, true_dag, X[:2000])
 
         time_subgraph_list = []
@@ -432,9 +389,7 @@ if __name__ == '__main__':
             logger.info(f"sub_met2 before prunning {sub_met2.metrics if sub_met2 else None}") 
             logger.info(f"sub_met after prunning {sub_met.metrics if sub_met else None}")
             
-            # 剪枝前
             sub_causal_matrix_list_befroe.append(sub_causal_matrix_order)
-            # 剪枝后
             sub_causal_matrix_list_after.append(sub_causal_matrix)
 
             # logger.info(f"sub_matrix_before\n{sub_causal_matrix_order.astype(np.int64)}")
