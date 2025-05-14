@@ -124,13 +124,13 @@ def split_graph(markov_blankets, true_dag, X):
 
     for i in range(n_nodes):
         blanket_indices = np.where(markov_blankets[i])[0]
-        # print(i, blanket_indices)
+        # 
         if len(blanket_indices) <= 1:
             sub_X_list.append(None)
             sub_true_dag_list.append(None)
             sub_nodes_list.append(None)
             continue
-        # 把节点 i 自己也加进去
+        # add node i itself
         nodes = set(blanket_indices)
         nodes.add(i)
         nodes = sorted(nodes)
@@ -318,7 +318,7 @@ if __name__ == '__main__':
 
     res_after_prunning = []
     res_before_prunning = []
-    lamb_choice = [0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30, 40, 50, 100]
+    lamb_choice = [0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     thresh_choice = [0, 0.05 ,0.1 ,0.15 ,0.2 ,0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7, 0.8, 0.9]
     lamb_and_thresh_exp_bef = {f"{l}_{t}": [] for l in lamb_choice for t in thresh_choice}
     lamb_and_thresh_exp_aft = {f"{l}_{t}": [] for l in lamb_choice for t in thresh_choice}
@@ -384,17 +384,13 @@ if __name__ == '__main__':
             except Exception as e:
                 sub_met = None
                 logger.info(f"[Error] sub_met=None: {traceback.format_exc()}")
-            # logger.info(f"\nsub_causal_matrix_order {type(sub_causal_matrix_order)}\n{sub_causal_matrix_order}")
-            # logger.info(f"\nsub_causal_matrix {type(sub_causal_matrix)}\n{sub_causal_matrix}")
+
             logger.info(f"sub_met2 before prunning {sub_met2.metrics if sub_met2 else None}") 
             logger.info(f"sub_met after prunning {sub_met.metrics if sub_met else None}")
             
             sub_causal_matrix_list_befroe.append(sub_causal_matrix_order)
             sub_causal_matrix_list_after.append(sub_causal_matrix)
 
-            # logger.info(f"sub_matrix_before\n{sub_causal_matrix_order.astype(np.int64)}")
-            # logger.info(f"sub_matrix_after\n{sub_causal_matrix.astype(np.int64)}")
-            # logger.info(f"sub_true_dag {type(sub_true_dag)}\n{sub_true_dag}")
 
         time_subgraph_avg = sum(time_subgraph_list)/len(time_subgraph_list) if len(time_subgraph_list)>0 else -1
         time_subgraph_max = max(time_subgraph_list)
@@ -420,7 +416,7 @@ if __name__ == '__main__':
                     logger.info(f"merged_met_before lamb={l} thresh={t} {merged_met.metrics}")
                     lamb_and_thresh_exp_bef[f"{l}_{t}"].append(merged_met.metrics)
             
-            # exit()
+            # 
             t1 = time.time()
             merged_causal_matrix_aft = merge_graph_voting(sub_nodes_list, sub_causal_matrix_list_after, true_dag)
             merge_DAG = GreedyFAS(merged_causal_matrix_aft)
