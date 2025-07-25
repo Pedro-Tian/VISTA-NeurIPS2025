@@ -85,7 +85,7 @@ def split_graph(markov_blankets, true_dag, X):
         # print(i, blanket_indices)
         if len(blanket_indices) <= 1:
             continue
-        # 把节点 i 自己也加进去
+        # 
         nodes = set(blanket_indices)
         nodes.add(i)
         nodes = sorted(nodes)

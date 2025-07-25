@@ -18,10 +18,10 @@ def check_dag(arr):
 
 def find_cycle_min_edge(G):
     try:
-        # 寻找任意一个环
+        # find any cycle
         cycle = nx.find_cycle(G)
         # print(cycle)
-        # 找到环中权重最小的边
+        # find the minimal-weight edge
         min_edge = min(cycle, key=lambda e: G[e[0]][e[1]]['weight'])
         return min_edge
     except nx.NetworkXNoCycle:
@@ -34,17 +34,17 @@ def adjacency_matrix_to_dag(A):
 
     G = nx.from_numpy_array(A, create_using=nx.DiGraph())
     
-    # 持续移除环中最小边
+    # remove smallest edge
     iter = 0
     while True:
         min_edge = find_cycle_min_edge(G)
         if min_edge is None:
             break
             
-        # 移除最小权重边
+        
         u, v = min_edge
         G.remove_edge(u, v)
-        A[u][v] = 0  # 更新邻接矩阵
+        A[u][v] = 0  # update Adj matrix
         iter+=1
         
     return A, iter
@@ -52,42 +52,41 @@ def adjacency_matrix_to_dag(A):
 
 def process_scc(G, scc):
     subgraph = G.subgraph(scc)
-    node_order = _eades_ordering(subgraph)  # 使用Eades近似排序
+    node_order = _eades_ordering(subgraph)  # 
     print(node_order)
 
 
 def improved_adjacency_to_dag(A):
     """
-    基于SCC分解的改进算法实现
-    :param A: 原始邻接矩阵
-    :return: 优化后的DAG邻接矩阵
+    Based on Strong connected component
+    :param A: Adj Matrix
+    :return: DAG Adj Matrix
     """
     G = nx.from_numpy_array(A, create_using=nx.DiGraph())
     
-    # 持续处理强连通分量
+
     while True:
         scc_list = list(nx.strongly_connected_components(G))
-        if len(scc_list) == A.shape[0]:  # 所有分量都是单节点
+        if len(scc_list) == A.shape[0]:  
             break
         
-        # 找到最大的强连通分量进行处理
+        
         largest_scc = max(scc_list, key=len)
         if len(largest_scc) == 1:
             continue
             
-        # 在SCC内部应用顶点排序策略
-        subgraph = G.subgraph(largest_scc)
-        node_order = _eades_ordering(subgraph)  # 使用Eades近似排序
         
-        # 删除逆序边中的最小权重边
+        subgraph = G.subgraph(largest_scc)
+        node_order = _eades_ordering(subgraph)  
+        
         removed_edges = []
         for u in node_order:
             for v in node_order:
                 if subgraph.has_edge(u, v):
-                    if node_order.index(u) > node_order.index(v):  # 逆序边
+                    if node_order.index(u) > node_order.index(v):  # backward edge
                         removed_edges.append((u, v, subgraph[u][v]['weight']))
         
-        # 按权重排序并删除最小边直到无环
+        
         removed_edges.sort(key=lambda x: x)
         for u, v, _ in removed_edges:
             G.remove_edge(u, v)
@@ -99,7 +98,7 @@ def improved_adjacency_to_dag(A):
 
 def _eades_ordering(G):
     """
-    Eades近似算法生成顶点排序
+    Eades ordering
     """
     G = nx.DiGraph(G)
     S = []
@@ -150,7 +149,7 @@ def GreedyFAS(A):
                 if eades_order.index(u) > eades_order.index(v):  # 逆序边
                     removed_edges.append((u, v, G[u][v]['weight']))
     
-    # 按权重排序并删除最小边直到无环
+    
     removed_edges.sort(key=lambda x: x[2])
     for u, v, _ in removed_edges:
         G.remove_edge(u, v)
@@ -160,9 +159,9 @@ def GreedyFAS(A):
 
     return A
 
-# 示例测试
+# test sample
 if __name__ == "__main__":
-    # 创建一个有环的邻接矩阵
+    # directed Adj with cycle
     A = np.array([
         [0, 3, 2, 0],
         [0, 0, 4, 1],
@@ -182,7 +181,7 @@ if __name__ == "__main__":
         [1., 0.33333333, 1., 1., 0., 1., 1., 1., 0., 0.],
         [1., 0.25, 1., 0.5,0., 1., 1., 1., 1., 0.]])
     
-    print("原始邻接矩阵：")
+    print("Original Adj：")
     # print(A)
     print(np.sum(A))
     
@@ -208,7 +207,7 @@ if __name__ == "__main__":
 
     dag_A, iter = adjacency_matrix_to_dag(A.copy())
     
-    print("\n转换后的DAG邻接矩阵：")
+    print("\nTransformed DAG Adj：")
     # print(dag_A)
     print(check_dag(dag_A), iter, np.sum(dag_A))
     print()

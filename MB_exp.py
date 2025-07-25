@@ -1,28 +1,4 @@
-# coding=utf-8
-# Copyright (C) 2021. Huawei Technologies Co., Ltd. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-"""
-This demo script aim to demonstrate
-how to use CORL algorithm in `castle` package for causal inference.
-
-If you want to plot causal graph, please make sure you have already install
-`networkx` package, then like the following import method.
-
-Warnings: This script is used only for demonstration and cannot be directly
-          imported.
-"""
 
 import os
 os.environ['CASTLE_BACKEND'] ='pytorch'
@@ -63,13 +39,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'causal-
 
 
 def set_logger(args):
-    # 配置日志
-    # 记录不同级别的日志
-    # logger.debug("这是一条debug信息")
-    # logger.info("这是一条info信息")
-    # logger.warning("这是一条warning信息")
-    # logger.error("这是一条error信息")
-    # logger.critical("这是一条critical信息")
     log_path = f"./experiment_logs/MBexp_v.10_N{args.nodes}{args.type}{args.h}_num{args.num_observation}.log"
     if os.path.exists(log_path): os.remove(log_path)
     
@@ -94,8 +63,6 @@ def set_logger(args):
     
 
 def get_MB(data, ice_lam_min = 0.01, ice_lam_max = 0.1, ice_lam_n = 40):
-    # 这三个参数维持SCILP默认设置，具体取值也许论文里提及了？ TODO double check hyper-parameters in DCILP paper
-    # ice_lam_min, ice_lam_max, ice_lam_n 0.1, 0.3, 10
 
     data = data - np.mean(data, axis=0, keepdims=True)
     # Method ICE empirical
@@ -196,9 +163,6 @@ def evaluation_summary(list_of_dic):
     return result
 
 def split_graph(markov_blankets, true_dag, X):
-    # sub_X_list: 每个元素为子图对应的数据矩阵
-    # sub_true_dag_list: 每个元素为子图对应的邻接矩阵 (感觉好像没用)
-    # sub_nodes_list：很重要，子图排序完之后要恢复回原来的节点
 
     sub_X_list = []
     sub_true_dag_list = []
@@ -207,13 +171,11 @@ def split_graph(markov_blankets, true_dag, X):
 
     for i in range(n_nodes):
         blanket_indices = np.where(markov_blankets[i])[0]
-        # print(i, blanket_indices)
         if len(blanket_indices) <= 1:
             sub_X_list.append([])
             sub_true_dag_list.append([])
             sub_nodes_list.append([])
             continue
-        # 把节点 i 自己也加进去
         nodes = set(blanket_indices)
         nodes.add(i)
         nodes = sorted(nodes)
@@ -299,7 +261,7 @@ if __name__ == '__main__':
         parents, children, spouse, sub_MB = true_MB(true_dag, 0)
 
 
-        ## 测试MB结果
+        ## Test MB
         t1 = time.time()
         markov_blankets = get_MB(X)
         # print(len(markov_blankets))
@@ -310,7 +272,7 @@ if __name__ == '__main__':
         mb_methods = []
         mbs = {k: compute_MB(X, method=k) for k in mb_methods}
         mb_metrics_methods = {k: [] for k in mb_methods}
-        # 根据 markov_blankets 分割 true_dag 和 X
+        
         sub_X_list, sub_true_dag_list, sub_nodes_list = split_graph(markov_blankets, true_dag, X)
         # print(len(sub_nodes_list))
         # print(sub_nodes_list)
